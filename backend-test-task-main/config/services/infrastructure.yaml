@@ -1,0 +1,75 @@
+services:
+  # Redis
+  Raketa\BackendTestTask\Infrastructure\Shared\Redis\RedisConnectionInterface:
+    class: Raketa\BackendTestTask\Infrastructure\Shared\Redis\RedisConnection
+    arguments:
+      $host: '%env(REDIS_HOST)%'
+      $port: '%env(int:REDIS_PORT)%'
+      $timeout: '%env(float:REDIS_TIMEOUT)%'
+      $auth: '%env(REDIS_PASSWORD)%'
+      $logger: '@Raketa\BackendTestTask\Application\Shared\Logger\LoggerInterface'
+
+  # Кастомный сериализатор
+  Raketa\BackendTestTask\Infrastructure\Serializer\DomainSerializer:
+    arguments:
+      $objectNormalizer: '@serializer.normalizer.object'
+      $moneyNormalizer: '@Raketa\BackendTestTask\Infrastructure\Serializer\Normalizer\MoneyNormalizer'
+      $quantityNormalizer: '@Raketa\BackendTestTask\Infrastructure\Serializer\Normalizer\QuantityNormalizer'
+      $baseIdNormalizer: '@Raketa\BackendTestTask\Infrastructure\Serializer\Normalizer\BaseIdNormalizer'
+      $jsonEncoder: '@serializer.encoder.json'
+
+  # Cart Mapper
+  Raketa\BackendTestTask\Infrastructure\Persistence\Redis\CartMapper: ~
+
+  # Cart Repository
+  Raketa\BackendTestTask\Domain\Cart\Repository\CartRepositoryInterface:
+    class: Raketa\BackendTestTask\Infrastructure\Persistence\Redis\RedisCartRepository
+    arguments:
+      $redisConnection: '@Raketa\BackendTestTask\Infrastructure\Shared\Redis\RedisConnectionInterface'
+      $logger: '@Raketa\BackendTestTask\Application\Shared\Logger\LoggerInterface'
+      $cartMapper: '@Raketa\BackendTestTask\Infrastructure\Persistence\Redis\CartMapper'
+
+  # Doctrine Repositories
+  Raketa\BackendTestTask\Domain\Product\Repository\ProductRepositoryInterface:
+    class: Raketa\BackendTestTask\Infrastructure\Persistence\Doctrine\Repository\DoctrineProductRepository
+    arguments:
+      $entityManager: '@doctrine.orm.entity_manager'
+      $logger: '@Raketa\BackendTestTask\Application\Shared\Logger\LoggerInterface'
+
+  Raketa\BackendTestTask\Domain\Category\Repository\CategoryRepositoryInterface:
+    class: Raketa\BackendTestTask\Infrastructure\Persistence\Doctrine\Repository\DoctrineCategoryRepository
+    arguments:
+      $entityManager: '@doctrine.orm.entity_manager'
+      $logger: '@Raketa\BackendTestTask\Application\Shared\Logger\LoggerInterface'
+
+  # Logger
+  Raketa\BackendTestTask\Application\Shared\Logger\LoggerInterface:
+    class: Raketa\BackendTestTask\Infrastructure\Shared\Logger\MonologLogger
+    arguments:
+      $logger: '@monolog.logger'
+
+  # Handlers
+  Raketa\BackendTestTask\Application\Cart\Query\GetCartHandler:
+    arguments:
+      $cartRepository: '@Raketa\BackendTestTask\Domain\Cart\Repository\CartRepositoryInterface'
+      $logger: '@Raketa\BackendTestTask\Application\Shared\Logger\LoggerInterface'
+
+  Raketa\BackendTestTask\Application\Cart\Command\AddItemToCartHandler:
+    arguments:
+      $cartRepository: '@Raketa\BackendTestTask\Domain\Cart\Repository\CartRepositoryInterface'
+      $productRepository: '@Raketa\BackendTestTask\Domain\Product\Repository\ProductRepositoryInterface'
+      $logger: '@Raketa\BackendTestTask\Application\Shared\Logger\LoggerInterface'
+
+  Raketa\BackendTestTask\Application\Product\Query\GetProductsByCategoryHandler:
+    arguments:
+      $productRepository: '@Raketa\BackendTestTask\Domain\Product\Repository\ProductRepositoryInterface'
+      $categoryRepository: '@Raketa\BackendTestTask\Domain\Category\Repository\CategoryRepositoryInterface'
+      $logger: '@Raketa\BackendTestTask\Application\Shared\Logger\LoggerInterface'
+
+  # Controllers
+  Raketa\BackendTestTask\Infrastructure\Controller\:
+    resource: '../../src/Infrastructure/Controller'
+    tags: ['controller.service_arguments']
+    autowire: true
+    autoconfigure: true
+    public: true

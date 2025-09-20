@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                          https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="Raketa\BackendTestTask\Domain\Product\Product" table="products">
+        <id name="id" type="product_id" column="id" length="36">
+            <generator strategy="NONE"/>
+        </id>
+        <field name="name" length="255"/>
+        <embedded name="price" class="Raketa\BackendTestTask\Domain\Shared\ValueObject\Money" use-column-prefix="false"/>
+        <field name="categoryId" type="category_id" column="category_id"/>
+
+        <indexes>
+            <index name="IDX_category_id" columns="category_id"/>
+        </indexes>
+
+     </entity>
+</doctrine-mapping>
+
+

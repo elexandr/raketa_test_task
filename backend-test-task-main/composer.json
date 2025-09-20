@@ -1,0 +1,30 @@
+{
+  "name": "raketa/backend-test-task",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Raketa\\BackendTestTask\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^8.2",
+    "symfony/framework-bundle": "*",
+    "symfony/routing": "*",
+    "symfony/http-foundation": "*",
+    "symfony/dependency-injection": "*",
+    "symfony/config": "*",
+    "symfony/yaml": "*",
+    "doctrine/doctrine-bundle": "*",
+    "doctrine/orm": "*",
+    "doctrine/migrations": "*",
+    "symfony/monolog-bundle": "*",
+    "ext-redis": "*",
+    "ext-json": "*",
+    "symfony/dotenv": "*",
+    "symfony/serializer": "*",
+    "symfony/property-access": "*",
+    "nelmio/api-doc-bundle": "*"
+  }
+}

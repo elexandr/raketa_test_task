@@ -1,0 +1,27 @@
+doctrine:
+  dbal:
+    url: "%env(resolve:DATABASE_URL)%"
+    types:
+      money: Raketa\BackendTestTask\Infrastructure\Persistence\Doctrine\Type\MoneyType
+      quantity: Raketa\BackendTestTask\Infrastructure\Persistence\Doctrine\Type\QuantityType
+      product_id: Raketa\BackendTestTask\Infrastructure\Persistence\Doctrine\Type\ProductIdType
+      category_id: Raketa\BackendTestTask\Infrastructure\Persistence\Doctrine\Type\CategoryIdType
+
+  orm:
+    auto_generate_proxy_classes: true
+    enable_lazy_ghost_objects: true
+    entity_managers:
+      default:
+        mappings:
+          Product:
+            type: xml
+            dir: "%kernel.project_dir%/src/Infrastructure/Persistence/Doctrine/Mapping/Product"
+            prefix: "Raketa\\BackendTestTask\\Domain\\Product"
+          Category:
+            type: xml
+            dir: "%kernel.project_dir%/src/Infrastructure/Persistence/Doctrine/Mapping/Category"
+            prefix: "Raketa\\BackendTestTask\\Domain\\Category"
+          Shared:
+            type: xml
+            dir: "%kernel.project_dir%/src/Infrastructure/Persistence/Doctrine/Mapping/Money"
+            prefix: "Raketa\\BackendTestTask\\Domain\\Shared\\ValueObject"

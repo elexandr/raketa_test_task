@@ -1,0 +1,90 @@
+services:
+  # === PHP-FPM (application) ==============================================
+  app:
+    build:
+      context: .
+      dockerfile: docker/php.dockerfile
+    container_name: raketa_app
+    volumes:
+      - ./backend-test-task-main:/var/www/html:cached
+      - ./.env:/var/www/html/.env:ro
+      - ./var/cache:/var/www/html/var/cache
+      - ./var/log:/var/www/html/var/log
+    env_file:
+      - ./.env
+    environment:
+      - APP_ENV=${APP_ENV}
+      - APP_SECRET=${APP_SECRET}
+      - APP_DEBUG=${APP_DEBUG}
+      - DATABASE_URL=mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?serverVersion=${DB_SERVER_VERSION}&charset=${DB_CHARSET}
+      - REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_TIMEOUT=${REDIS_TIMEOUT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - LOG_CHANNEL=${LOG_CHANNEL}
+      - LOG_LEVEL=${LOG_LEVEL}
+    depends_on:
+      - db
+      - redis
+    networks:
+      - app_net
+
+  # === Nginx (web server) ================================================
+  web:
+    image: nginx:1.27-alpine
+    container_name: raketa_web
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:rw
+      - ./backend-test-task-main:/var/www/html:cached
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - app_net
+
+  # === Redis (cache) ==============================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: raketa_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    networks:
+      - app_net
+
+  # === MySQL (database) ==============================================
+  db:
+    image: mysql:8.0
+    container_name: raketa_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pass
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_CHARSET: ${DB_CHARSET}
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+      MYSQL_DEFAULT_CHARACTER_SET: ${DB_CHARSET}
+    command:
+      - --character-set-server=${DB_CHARSET}
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./docker/start_migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    networks:
+      - app_net
+
+volumes:
+  db_data:
+
+networks:
+  app_net:
+    driver: bridge

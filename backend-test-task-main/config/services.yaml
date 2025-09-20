@@ -1,0 +1,43 @@
+parameters:
+    env(APP_ENV): 'dev'
+    env(APP_DEBUG): '%env(bool:APP_DEBUG)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Raketa\BackendTestTask\:
+        resource: '../src/*'
+        exclude:
+            - '../src/Domain/'
+            - '../src/Infrastructure/{Persistence,Shared}/'
+            - '../src/var/cache/'
+            - '../src/var/log/'
+
+    Raketa\BackendTestTask\Infrastructure\Controller\:
+        resource: '../src/Infrastructure/Controller/'
+        tags: ['controller.service_arguments']
+
+    # Doctrine
+    Doctrine\Common\Annotations\AnnotationReader: ~
+    Doctrine\Common\Cache\ArrayCache: ~
+
+    # Symfony
+    Symfony\Component\HttpFoundation\RequestStack: ~
+
+    # Swagger
+    nelmio_api_doc.controller.swagger_ui:
+      class: Nelmio\ApiDocBundle\Controller\SwaggerUiController
+      arguments:
+        - '@nelmio_api_doc.render_docs'
+        - '@?twig'
+        - '%nelmio_api_doc.areas%'
+        - '%kernel.environment%'
+      public: true
+    nelmio_api_doc.controller.swagger:
+      class: Nelmio\ApiDocBundle\Controller\DocumentationController
+      arguments:
+        - '@nelmio_api_doc.render_docs'
+      public: true
