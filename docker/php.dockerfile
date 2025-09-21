@@ -16,6 +16,7 @@ RUN apk add --no-cache \
     curl \
     git \
     unzip \
+     acl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_mysql zip mbstring xml
 
@@ -38,12 +39,10 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
 # Copy application code from the main project directory
-COPY --chown=www-data:www-data backend-test-task-main/ .
+COPY backend-test-task-main/ .
 
 # Создаем var директории с правильными правами
-RUN mkdir -p var/cache var/log \
-    && chown -R www-data:www-data var \
-    && chmod -R 775 var
+RUN mkdir -p var/cache var/log
 
 EXPOSE 9000
 

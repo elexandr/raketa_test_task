@@ -29,36 +29,31 @@ final class RedisConnection implements RedisConnectionInterface
         return $this->client;
     }
 
-    public function isConnected(): bool
+    public function isAvailable(): bool
     {
         try {
-            $connected = $this->client !== null && $this->client->ping() === true;
-            if (!$connected) {
-                $this->logger->warning('Redis connection check failed');
-            }
-            return $connected;
-        } catch (\RedisException $e) {
-            $this->logger->error('Redis ping failed', ['exception' => $e->getMessage()]);
+            return $this->getClient()->ping() === true;
+        } catch (\RedisException | RedisConnectionException $e) {
+            $this->logger->warning('Redis availability check failed', ['exception' => $e->getMessage()]);
             return false;
         }
     }
 
-    public function testConnection(): bool
+    public function isWritable(): bool
     {
         try {
             $client = $this->getClient();
-            $result = $client->ping() === true;
-            
-            if ($result) {
-                $this->logger->debug('Redis connection test successful');
-            }
-            
-            return $result;
-        } catch (\RedisException $e) {
-            $this->logger->error('Redis connection test failed', ['exception' => $e->getMessage()]);
-            return false;
-        } catch (RedisConnectionException $e) {
-            $this->logger->error('Redis connection test failed', ['exception' => $e->getMessage()]);
+            $testKey = 'write_test:' . uniqid('', true);
+            $testValue = 'test_value';
+            $ttl = 2;
+
+            $result = $client->setex($testKey, $ttl, $testValue);
+            $value = $client->get($testKey);
+            $client->del($testKey);
+
+            return $result && $value === $testValue;
+        } catch (\RedisException | RedisConnectionException $e) {
+            $this->logger->warning('Redis write check failed', ['exception' => $e->getMessage()]);
             return false;
         }
     }
@@ -76,33 +71,22 @@ final class RedisConnection implements RedisConnectionInterface
             $connected = $this->client->connect($this->host, $this->port, $this->timeout);
 
             if (!$connected) {
-                $this->logger->emergency('Failed to connect to Redis - connection returned false');
                 throw new RedisConnectionException('Failed to connect to Redis');
             }
 
-            if ($this->auth !== null) {
-                $authenticated = $this->client->auth($this->auth);
-                if (!$authenticated) {
-                    $this->logger->emergency('Redis authentication failed');
-                    throw new RedisConnectionException('Redis authentication failed');
-                }
-            }
-
-            // Test the connection
-            if ($this->client->ping() !== true) {
-                $this->logger->emergency('Redis ping failed after connection');
-                throw new RedisConnectionException('Redis ping failed');
+            if ($this->auth !== null && !$this->client->auth($this->auth)) {
+                throw new RedisConnectionException('Redis authentication failed');
             }
 
             $this->logger->info('Redis connection established successfully');
 
         } catch (\RedisException $e) {
-            $this->logger->emergency('Redis connection error', [
+            $this->logger->error('Redis connection failed', [
                 'exception' => $e->getMessage(),
                 'host' => $this->host,
                 'port' => $this->port
             ]);
-            throw new RedisConnectionException('Redis connection error: ' . $e->getMessage(), 0, $e);
+            throw new RedisConnectionException('Redis connection failed: ' . $e->getMessage(), 0, $e);
         }
     }
 }

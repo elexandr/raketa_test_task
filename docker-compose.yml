@@ -8,8 +8,8 @@ services:
     volumes:
       - ./backend-test-task-main:/var/www/html:cached
       - ./.env:/var/www/html/.env:ro
-      - ./var/cache:/var/www/html/var/cache
-      - ./var/log:/var/www/html/var/log
+      - ./var_cache:/var/www/html/var/cache
+      - ./var_log:/var/www/html/var/log
     env_file:
       - ./.env
     environment:

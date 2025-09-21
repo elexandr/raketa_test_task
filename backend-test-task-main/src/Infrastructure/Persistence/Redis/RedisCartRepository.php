@@ -26,6 +26,11 @@ final class RedisCartRepository implements CartRepositoryInterface
 
     public function findById(CartId $id): ?Cart
     {
+        if (!$this->redisConnection->isAvailable()) {
+            $this->logger->error('Redis is not available for reading');
+            throw new RedisConnectionException('Redis is not available for reading');
+        }
+
         try {
             $redis = $this->redisConnection->getClient();
             $key = $this->getKey($id);
@@ -47,7 +52,7 @@ final class RedisCartRepository implements CartRepositoryInterface
                 'exception' => $e->getMessage()
             ]);
             throw new RedisConnectionException('Failed to get cart from Redis: ' . $e->getMessage(), 0, $e);
-        } catch (\Exception $e) {
+        } catch (\JsonException $e) {
             $this->logger->error('Failed to deserialize cart from Redis', [
                 'key' => $this->getKey($id),
                 'exception' => $e->getMessage()
@@ -58,6 +63,11 @@ final class RedisCartRepository implements CartRepositoryInterface
 
     public function save(Cart $cart): void
     {
+        if (!$this->redisConnection->isWritable()) {
+            $this->logger->error('Redis is not available for writing');
+            throw new RedisConnectionException('Redis is not available for writing');
+        }
+
         try {
             $redis = $this->redisConnection->getClient();
             $key = $this->getKey($cart->getId());
@@ -71,7 +81,7 @@ final class RedisCartRepository implements CartRepositoryInterface
             $result = $redis->setex($key, self::TTL_SECONDS, $data);
 
             if ($result === false) {
-                $this->logger->error('Failed to save cart to Redis - setex returned false', ['key' => $key]);
+                $this->logger->error('Failed to save cart to Redis', ['key' => $key]);
                 throw new RedisConnectionException('Failed to save cart to Redis');
             }
 
@@ -86,7 +96,7 @@ final class RedisCartRepository implements CartRepositoryInterface
                 'exception' => $e->getMessage()
             ]);
             throw new RedisConnectionException('Failed to save cart to Redis: ' . $e->getMessage(), 0, $e);
-        } catch (\Exception $e) {
+        } catch (\JsonException $e) {
             $this->logger->error('Failed to serialize cart for Redis', [
                 'key' => $this->getKey($cart->getId()),
                 'exception' => $e->getMessage()

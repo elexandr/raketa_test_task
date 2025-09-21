@@ -4,3 +4,5 @@ vendor/
 data/
 logs/
 var/
+var_cache/
+var_log/
