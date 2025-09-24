@@ -36,9 +36,4 @@ final readonly class Money
     {
         return $this->value;
     }
-
-    public function jsonSerialize(): array
-    {
-        return ['amount' => $this->value];
-    }
 }

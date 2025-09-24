@@ -31,10 +31,4 @@ abstract class BaseId implements IdInterface
     {
         return $this->toString();
     }
-
-    public function jsonSerialize(): string
-    {
-        return $this->toString();
-    }
-
 }

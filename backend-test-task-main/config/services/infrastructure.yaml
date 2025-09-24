@@ -9,15 +9,6 @@ services:
       $auth: '%env(REDIS_PASSWORD)%'
       $logger: '@Raketa\BackendTestTask\Application\Shared\Logger\LoggerInterface'
 
-  # Кастомный сериализатор
-  Raketa\BackendTestTask\Infrastructure\Serializer\DomainSerializer:
-    arguments:
-      $objectNormalizer: '@serializer.normalizer.object'
-      $moneyNormalizer: '@Raketa\BackendTestTask\Infrastructure\Serializer\Normalizer\MoneyNormalizer'
-      $quantityNormalizer: '@Raketa\BackendTestTask\Infrastructure\Serializer\Normalizer\QuantityNormalizer'
-      $baseIdNormalizer: '@Raketa\BackendTestTask\Infrastructure\Serializer\Normalizer\BaseIdNormalizer'
-      $jsonEncoder: '@serializer.encoder.json'
-
   # Cart Mapper
   Raketa\BackendTestTask\Infrastructure\Persistence\Redis\CartMapper: ~
 

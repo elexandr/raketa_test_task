@@ -32,9 +32,4 @@ final readonly class Quantity
         $result = $this->value - $amount->value;
         return new self($result);
     }
-
-    public function jsonSerialize(): array
-    {
-        return ['value' => $this->value];
-    }
 }
